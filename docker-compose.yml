@@ -1,0 +1,16 @@
+version: '2'
+services:
+  redis:
+    image: redis:5-alpine
+    ports:
+      - 6379:6379
+
+  db:
+    image: mysql:8
+    volumes:
+      - ./tmp/db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: prisma
+      MYSQL_DATABASE: shopping
+    ports:
+      - 3306:3306
