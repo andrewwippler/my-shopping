@@ -1,17 +1,21 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 
 import type { AppState, AppThunk } from '@/store'
+import { shoppingItems } from '@/types/ShoppingItem'
 
 export interface UIState {
-  illustrationEdit: boolean
+  shoppingItems: Array<shoppingItems>
   updateUI: boolean
-  redirect: string
 }
 
 const initialState: UIState = {
-  illustrationEdit: false,
+  shoppingItems: [{
+    id: 0,
+    name: "None",
+    picked: false,
+    person: "",
+  }],
   updateUI: false,
-  redirect: "/",
 }
 
 export const uiReducer = createSlice({
@@ -19,23 +23,19 @@ export const uiReducer = createSlice({
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
-    setIllustrationEdit: (state, actions) => {
-      state.illustrationEdit = actions.payload
+    setShoppingItems: (state, actions) => {
+      state.shoppingItems = actions.payload
     },
-    setUpdateUI: (state, actions) => {
-      state.updateUI = actions.payload
-    },
-    setRedirect: (state, actions) => {
-      state.redirect = actions.payload
-    },
+    setUpdateUI: (state) => {
+      state.updateUI = !state.updateUI
+    }
   },
 
 
 })
-export const selectIllustrationEdit = (state: AppState) => state.ui.illustrationEdit
+export const selectshoppingItems = (state: AppState) => state.ui.shoppingItems
 export const selectUpdateUI = (state: AppState) => state.ui.updateUI
-export const getRedirect = (state: AppState) => state.ui.redirect
 
-export const { setIllustrationEdit, setUpdateUI, setRedirect } = uiReducer.actions
+export const { setShoppingItems, setUpdateUI } = uiReducer.actions
 
 export default uiReducer.reducer

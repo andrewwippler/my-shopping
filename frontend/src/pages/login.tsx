@@ -4,15 +4,12 @@ import Layout from '@/components/Layout'
 import Form from '@/components/Form'
 import fetchJson, { FetchError } from '@/lib/fetchJson'
 import { useAppDispatch, useAppSelector } from '@/hooks'
-import { getRedirect, setRedirect } from '@/reducers/ui';
 export default function Login() {
 
   const dispatch = useAppDispatch()
 
   // retrieve first accessed path as unauthenticated user
-  const redirectPath = useAppSelector(getRedirect)
   const { mutateUser } = useUser({
-    redirectTo: redirectPath,
     redirectIfFound: true,
   })
 

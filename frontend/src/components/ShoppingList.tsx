@@ -1,7 +1,9 @@
 import useUser from "@/lib/useUser";
 import React, { useState, useEffect, useRef } from "react";
-import SocketIOClient from "socket.io-client";
+import { socket } from '@/lib/socket';
 import { User } from '@/pages/api/user'
+import { selectUpdateUI, setUpdateUI } from "@/reducers/ui";
+import { useAppDispatch, useAppSelector } from "@/hooks";
 interface IMsg {
   user: string | undefined;
   msg: string;
@@ -12,6 +14,8 @@ export default function ShoppingList() {
     redirectTo: '/login',
   })
   const inputRef = useRef(null);
+  const dispatch = useAppDispatch();
+  const updateUI = useAppSelector(selectUpdateUI);
 
   // connected flag
   const [connected, setConnected] = useState<boolean>(false);
@@ -20,26 +24,28 @@ export default function ShoppingList() {
   const [chat, setChat] = useState<IMsg[]>([]);
   const [msg, setMsg] = useState<string>("");
 
-  useEffect((): any => {
-    // connect to socket server
-    const socket = SocketIOClient.connect(process.env.NEXT_PUBLIC_WS_URL, {
-      path: "/api/socketio",
-    });
-
-    // log socket connection
-    socket.on("connect", () => {
-      console.log("SOCKET CONNECTED!", socket.id);
+  useEffect(() => {
+    function onConnect() {
       setConnected(true);
-    });
+    }
 
-    // update chat on new message dispatched
-    socket.on("message", (message: IMsg) => {
-      chat.push(message);
-      setChat([...chat]);
-    });
+    function onDisconnect() {
+      setConnected(false);
+    }
 
-    // socket disconnet onUnmount if exists
-    if (socket) return () => socket.disconnect();
+    function onMessage(value) {
+      console.log(value)
+    }
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    socket.on('boo', onMessage);
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+      socket.off('boo', onMessage);
+    };
   }, []);
 
   const sendMessage = async (string: string) => {
@@ -50,18 +56,7 @@ export default function ShoppingList() {
         msg: string,
       };
 
-      // dispatch message to other users
-      const resp = await fetch("/api/item", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(message),
-      });
-
-      // reset field if OK
-      if (resp.ok) setMsg("");
-
+    socket.emit('message', message)
 
   };
 

@@ -31,8 +31,14 @@ jobs:
         with:
           context: frontend/.
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ github.sha }}
+          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:fe-${{ github.sha }}
 
+      - name: Build and push server image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: server/.
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:s-${{ github.sha }}
 
       - name: Updating Frontend
         uses: appleboy/ssh-action@master
@@ -41,4 +47,13 @@ jobs:
           username: kubedeploy
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          script: kubectl --namespace web set image deployment/shopping shopping=${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ github.sha }}
+          script: kubectl --namespace web set image deployment/shopping shopping=${{ env.REGISTRY }}/${{ env.REPOSITORY }}:fe-${{ github.sha }}
+
+      - name: Updating Frontend
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: kubedeploy
+          key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script: kubectl --namespace web set image deployment/shopping-server shopping-server=${{ env.REGISTRY }}/${{ env.REPOSITORY }}:s-${{ github.sha }}

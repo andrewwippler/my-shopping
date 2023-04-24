@@ -11,6 +11,3 @@ Need 2 terminals open to run:
 ## License
 
 Apache 2.0
-
-...
-https://vercel.com/guides/nextjs-prisma-postgres
