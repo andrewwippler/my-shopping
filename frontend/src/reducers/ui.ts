@@ -14,6 +14,7 @@ const initialState: UIState = {
     name: "None",
     picked: false,
     person: "",
+    sort: 0,
   }],
   updateUI: false,
 }
