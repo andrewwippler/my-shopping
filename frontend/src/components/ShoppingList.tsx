@@ -33,7 +33,7 @@ export default function ShoppingList() {
       setConnected(false);
     }
 
-    function onMessage(value) {
+    function onMessage(value: string) {
       console.log(value)
     }
 
