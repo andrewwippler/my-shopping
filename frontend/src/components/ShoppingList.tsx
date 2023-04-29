@@ -131,22 +131,22 @@ export default function ShoppingList() {
 
   return (
     <div>
-      <form className="w-fill mb-6 flex" onSubmit={handleAdd}>
+      <form className="grid grid-cols-5 w-full mb-6 ring-1" onSubmit={handleAdd}>
                 <input
                   id="productName"
                   name="productName"
                   type="productName"
                   autoComplete="productName"
                   required
-                  className="pl-1.5 py-1.5 ring-1 grow"
+                  className="pl-1.5 py-1.5 col-span-2"
                   placeholder="New..."
-
+                  // Need to set new value to something
                   />
-        <div className="inset-y-0 right-0 flex items-center">
+        <div className="col-span-2 inset-y-0 right-0 flex items-center">
           <select
             id="list"
             name="list"
-            className="h-full border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+            className="h-full border-0 bg-transparent py-0 pl-2 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
           >
             <option>S-Market</option>
             <option>Lidl</option>
@@ -154,7 +154,7 @@ export default function ShoppingList() {
           </select>
         </div>
           <button type="submit" className=' px-4 py-2 ring-1 font-semibold text-sm bg-green-300 hover:bg-green-500 text-white shadow-sm inline-flex' >
-          <CheckCircleIcon className="h-4 w-4 mr-2" />Add Product</button>
+          <CheckCircleIcon className="h-4 w-4 mr-2" />Add </button>
 
       </form>
       <DragDropContext onDragEnd={onDragEnd}>

@@ -36,23 +36,23 @@ export default function Item({
   return (<>
     <div className={`${classInclude} flex items-center my-2 text-l text-blue-900`}>
       {editTag ?
-        <div className="flex-inline w-full">
-          <form className="flex w-full mb-6 ring-1" onSubmit={handleSave}>
+        <div>
+          <form className="grid grid-cols-5 w-full mb-6 ring-1" onSubmit={handleSave}>
                 <input
                   id="productName"
                   name="productName"
                   type="productName"
                   autoComplete="productName"
                   required
-                  className="pl-1.5 py-1.5 grow"
+                  className="pl-1.5 py-1.5 col-span-2"
                   placeholder="productName"
                   defaultValue={item.name}
                   />
-        <div className="inset-y-0 right-0 flex items-center">
+        <div className="col-span-2 inset-y-0 right-0 flex items-center">
           <select
             id="list"
             name="list"
-            className="h-full border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+            className="h-full border-0 bg-transparent py-0 pl-2 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
           >
             <option>S-Market</option>
             <option>Lidl</option>
@@ -60,7 +60,7 @@ export default function Item({
           </select>
         </div>
           <button type="submit" className=' px-4 py-2 ring-1 font-semibold text-sm bg-green-300 hover:bg-green-500 text-white shadow-sm inline-flex' >
-          <CheckCircleIcon className="h-4 w-4 mr-2" />Update Product</button>
+          <CheckCircleIcon className="h-4 w-4 mr-2" />Up</button>
         </form>
           <button onClick={() => handleDelete()} className='px-4 py-2 mt-2 font-semibold text-sm bg-red-300 hover:bg-red-500 text-white w-full shadow-sm inline-flex items-center'>
           <TrashIcon className="h-4 w-4" />Delete this Item</button>
