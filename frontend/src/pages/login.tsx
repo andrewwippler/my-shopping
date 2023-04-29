@@ -10,6 +10,7 @@ export default function Login() {
 
   // retrieve first accessed path as unauthenticated user
   const { mutateUser } = useUser({
+    redirectTo: "/",
     redirectIfFound: true,
   })
 
