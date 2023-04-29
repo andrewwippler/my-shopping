@@ -59,7 +59,7 @@ io.on("connection", socket => {
         name: itemToAdd.name,
         sort: 0,
         picked: false,
-        list: "S-Market",
+        list: itemToAdd.list,
       },
     })
       io.sockets.emit("change_data");

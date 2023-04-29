@@ -31,7 +31,7 @@ export default function Item({
   };
 
 
-  if (active) classInclude = ''
+  if (active || editTag) classInclude = ''
 
   return (<>
     <div className={`${classInclude} flex items-center my-2 text-l text-blue-900`}>

@@ -83,8 +83,6 @@ export default function ShoppingList() {
 
   const onDragEnd = (result: any) => {
 
-    //TODO:
-    // send api url in build process because next js
     // console.log("result",result)
     // dropped outside the list
     if (!result.destination) {
@@ -126,8 +124,9 @@ export default function ShoppingList() {
   const handleAdd = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const name = event.currentTarget.productName.value.trim();
+    const list = event.currentTarget.list.value.trim();
     // update product name
-    socket.emit('addItem', {user: user?.uid, name})
+    socket.emit('addItem', {user: user?.uid, name, list})
   };
 
   return (
@@ -143,7 +142,17 @@ export default function ShoppingList() {
                   placeholder="New..."
 
                   />
-
+        <div className="inset-y-0 right-0 flex items-center">
+          <select
+            id="list"
+            name="list"
+            className="h-full border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+          >
+            <option>S-Market</option>
+            <option>Lidl</option>
+            <option>Prisma/Other</option>
+          </select>
+        </div>
           <button type="submit" className=' px-4 py-2 ring-1 font-semibold text-sm bg-green-300 hover:bg-green-500 text-white shadow-sm inline-flex' >
           <CheckCircleIcon className="h-4 w-4 mr-2" />Add Product</button>
 
