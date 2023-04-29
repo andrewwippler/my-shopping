@@ -18,9 +18,9 @@ export default function Item({
   const handleSave = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const newname = event.currentTarget.productName.value.trim();
-
+    const list = event.currentTarget.list.value.trim();
     // update product name
-    socket.emit('editItem', {id: item.id, name: newname})
+    socket.emit('editItem', {id: item.id, name: newname, list})
     setEditTag(false)
   };
 
@@ -34,21 +34,31 @@ export default function Item({
   if (active) classInclude = ''
 
   return (<>
-    <div className={`${classInclude} flex items-center my-4 text-l text-sky-900`}>
+    <div className={`${classInclude} flex items-center my-2 text-l text-blue-900`}>
       {editTag ?
         <div className="flex-inline w-full">
-          <form className="flex w-full mb-6" onSubmit={handleSave}>
+          <form className="flex w-full mb-6 ring-1" onSubmit={handleSave}>
                 <input
                   id="productName"
                   name="productName"
                   type="productName"
                   autoComplete="productName"
                   required
-                  className="pl-1.5 py-1.5 ring-1 grow"
+                  className="pl-1.5 py-1.5 grow"
                   placeholder="productName"
                   defaultValue={item.name}
                   />
-
+        <div className="inset-y-0 right-0 flex items-center">
+          <select
+            id="list"
+            name="list"
+            className="h-full border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+          >
+            <option>S-Market</option>
+            <option>Lidl</option>
+            <option>Prisma/Other</option>
+          </select>
+        </div>
           <button type="submit" className=' px-4 py-2 ring-1 font-semibold text-sm bg-green-300 hover:bg-green-500 text-white shadow-sm inline-flex' >
           <CheckCircleIcon className="h-4 w-4 mr-2" />Update Product</button>
         </form>
@@ -58,9 +68,9 @@ export default function Item({
 
       :
         <>
-        <button onClick={() => socket.emit('check', item.id)} className='px-4 py-2 mr-2 font-semibold text-sm bg-sky-300 hover:bg-sky-500 text-white shadow-sm inline-flex items-center'>
+        <button onClick={() => socket.emit('check', item.id)} className='px-4 py-2 mr-2 font-semibold text-sm bg-blue-300 hover:bg-blue-500 text-white shadow-sm inline-flex items-center'>
         <CheckIcon className="h-4 w-4" /></button>
-        <span className='grow'>{item.name}</span>
+        <span className='grow'>{item.name}</span> {/* , {item.list}, {String(item.picked)} */}
         <button onClick={() => setEditTag(true)} className='px-4  py-2 font-semibold text-sm bg-green-300 hover:bg-green-500 text-white rounded-full shadow-sm inline-flex items-center' >
         <PencilSquareIcon className="h-4 w-4" /></button>
 

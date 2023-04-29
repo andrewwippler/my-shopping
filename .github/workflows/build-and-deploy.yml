@@ -26,6 +26,9 @@ jobs:
           username: ${{ secrets.REG_USER  }}
           password: ${{ secrets.REG_PW }}
 
+      # - name: Echo public API
+      #   run: echo "NEXT_PUBLIC_WS_URL=http://localhost:3001" > frontend/.env.local
+
       - name: Build and push Frontend image
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:

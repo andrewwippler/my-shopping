@@ -20,8 +20,8 @@ export default function ShoppingList() {
   // connected flag
   const [connected, setConnected] = useState<boolean>(false);
 
-  const [activeItems, setActiveItems] = useState<shoppingItems[]>([]);
-  const [deactiveItems, setDeactiveItems] = useState<shoppingItems[]>([]);
+  const [Items, setAllItems] = useState<shoppingItems[]>([]);
+  const [lists, setLists] = useState<string[]>([]);
 
   useEffect(() => {
     socket.connect()
@@ -39,10 +39,10 @@ export default function ShoppingList() {
       socket.emit('load')
     }
 
-    function receiveData(value: Array<shoppingItems[]>) {
-      // false/deactive items are first
-      setDeactiveItems(value[0])
-      setActiveItems(value[1])
+    function receiveData(value: { items: shoppingItems[], lists: Array<string> }) {
+      // console.log("retrieved data",value)
+      setAllItems(value.items)
+      setLists(value.lists)
     }
 
     socket.on('connect', onConnect);
@@ -60,66 +60,74 @@ export default function ShoppingList() {
   }, []);
 
 // a little function to help us with reordering the result
-const reorder = (list: Iterable<shoppingItems>, startIndex: number, endIndex: number) => {
-  const result = Array.from(list);
-  const [removed] = result.splice(startIndex, 1);
-  result.splice(endIndex, 0, removed);
-  let sort = removed.sort
+  const reorder = (iterable: Iterable<shoppingItems>, startIndex: number, endIndex: number, list: string) => {
 
-  // find the previous sort item and add or subtract 1 from it
-  if (startIndex > endIndex) {
-    // if start indx > end index, subtract from sort
-    sort = Array.from(list)[endIndex].sort - 1
-  } else {
-   // if end index > start index, add to sort
-  sort = Array.from(list)[endIndex].sort + 1
-}
+    const result = Array.from(iterable);
+    const [removed] = result.splice(startIndex, 1);
+    result.splice(endIndex, 0, removed);
+    let sort = removed.sort
 
-  socket.emit('sortItem', {id: removed.id, sort, name: removed.name})
+    // find the previous sort item and add or subtract 1 from it
+    if (startIndex > endIndex) {
+      // if start indx > end index, subtract from sort
+      sort = Array.from(iterable)[endIndex].sort - 1
+    } else {
+    // if end index > start index, add to sort
+    sort = Array.from(iterable)[endIndex].sort + 1
+    }
 
-  return result;
-};
+    socket.emit('sortItem', {id: removed.id, sort, name: removed.name, list})
+
+    return result;
+  };
 
   const onDragEnd = (result: any) => {
+
+    //TODO:
+    // send api url in build process because next js
+    // console.log("result",result)
     // dropped outside the list
     if (!result.destination) {
       return;
     }
 
+    if (result.destination.droppableId == "Purchased") {
+      // emit checked and return
+      const [removed] = Array.from(Items).splice(result.source.index, 1);
+      socket.emit('check', removed.id);
+      return;
+    }
+
     const items = reorder(
-      activeItems,
+      Items,
       result.source.index,
-      result.destination.index
+      result.destination.index,
+      result.destination.droppableId
     );
 
-    setActiveItems(items);
+    setAllItems(items);
   }
 
-  const getItemStyle = (isDragging: boolean, draggableStyle: CSSProperties | undefined) => ({
+  const getItemStyle = (isDragging: boolean, draggableStyle: CSSProperties | undefined) => {
     // some basic styles to make the items look a bit nicer
-    userSelect: "none",
-    padding: 16,
-    margin: `0 0 8px 0`,
+    let drag = isDragging ? "bg-white ring-1 rounded-md" : "bg-white"
 
+    let value = `${drag} p-1`
     // change background colour if dragging
-    background: isDragging ? "lightgreen" : "white",
+    return value
+  };
 
-    // styles we need to apply on draggables
-
-    ...draggableStyle
-  });
-
-  const getListStyle = (isDraggingOver: boolean) => ({
-    background: isDraggingOver ? "lightblue" : "lightgrey",
-    padding: 8,
-  });
+  const getListStyle = (isDraggingOver: boolean) => {
+    let background = isDraggingOver ? "bg-blue-50" : "bg-stone-100"
+    let style = `${background} p-4`
+    return style
+  };
 
   const handleAdd = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const name = event.currentTarget.productName.value.trim();
-
     // update product name
-    socket.emit('addItem', {eser: user?.uid, name})
+    socket.emit('addItem', {user: user?.uid, name})
   };
 
   return (
@@ -139,40 +147,53 @@ const reorder = (list: Iterable<shoppingItems>, startIndex: number, endIndex: nu
           <button type="submit" className=' px-4 py-2 ring-1 font-semibold text-sm bg-green-300 hover:bg-green-500 text-white shadow-sm inline-flex' >
           <CheckCircleIcon className="h-4 w-4 mr-2" />Add Product</button>
 
-        </form>
-      <div>
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="activeItems">
+      </form>
+      <DragDropContext onDragEnd={onDragEnd}>
+        {lists && lists.map((list,listIndex) => (
+          <Droppable key={listIndex} droppableId={`${list}`}>
           {(provided, snapshot) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              style={getListStyle(snapshot.isDraggingOver)}
-            >
-        {activeItems.map((item, index) => (
-          <Draggable key={`activeItems-${index}-${item.sort}`} draggableId={`activeItems-${index}`} index={index}>
-            {(provided, snapshot) => (
-              // @ts-ignore
-              <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} style={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}
-            >
-        <Item active item={item} />
-                </div>
-              )}
-              </Draggable>
-        ))}
+            <div {...provided.droppableProps} ref={provided.innerRef} className={getListStyle(snapshot.isDraggingOver)}>
+            <div className="text-xl font-bold py-4 text-blue-900">{list}</div>
+              {Items.map((item, index) => (
+                (!item.picked && item.list == list) &&
+                <Draggable key={`${list}-${index}-${item.sort}`} draggableId={`${list}-${index}`} index={index}>
+                  {(provided, snapshot) => (
+                    // @ts-ignore
+                    <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}>
+                        <Item active item={item} />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
           {provided.placeholder}
             </div>
           )}
-        </Droppable>
-      </DragDropContext>
-      </div>
-    <div>
-        {deactiveItems.map((item, index) => (
+          </Droppable>
 
-       <Item key={`deactiveItems-${index}-${item.sort}`} item={item} />
-     ))}
-   </div>
-      <button className="w-full mt-8 rounded-md bg-sky-200 p-2" onClick={() => socket.emit('load')}>Force Reset</button>
+        ))}
+
+          <Droppable droppableId="Purchased">
+          {(provided, snapshot) => (
+            <div {...provided.droppableProps} ref={provided.innerRef} className={getListStyle(snapshot.isDraggingOver)}>
+            <div className="text-xl font-bold py-4 text-blue-900">Purchased</div>
+              {Items && Items.map((item, index) => (
+                item.picked &&
+                <Draggable key={`Purchased-${index}-${item.sort}`} draggableId={`Purchased-${index}`} index={index}>
+                  {(provided, snapshot) => (
+                    // @ts-ignore
+                    <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}>
+                      <Item item={item} />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+          {provided.placeholder}
+            </div>
+          )}
+          </Droppable>
+
+      </DragDropContext>
+      <button className="w-full mt-8 rounded-md bg-blue-200 p-2" onClick={() => socket.emit('load')}>Force Reset</button>
     </div>
   );
 };

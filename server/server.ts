@@ -1,7 +1,8 @@
-import { PrismaClient } from '@prisma/client'
-require('dotenv').config()
-import express from 'express'
+import { PrismaClient } from '@prisma/client';
+require('dotenv').config();
+import express from 'express';
 import { Server } from 'socket.io';
+import { _ } from 'lodash';
 
 const port = process.env.PORT || 3001;
 const origin = process.env.ORIGIN || "http://localhost:3000";
@@ -28,11 +29,11 @@ const io = new Server(server, {
 io.on("connection", socket => {
     console.log(`New client connected ${socket.id}`)
 
-    socket.on("message", async (message) => {
+  //   socket.on("message", async (message) => {
 
-    console.log(message) // receive from client
-    io.sockets.emit("boo",message) // send to client
-  })
+  //   console.log(message) // receive from client
+  //   io.sockets.emit("boo",message) // send to client
+  // })
 
   socket.on("load", async () => {
     const items = await prisma.item.findMany({
@@ -42,19 +43,25 @@ io.on("connection", socket => {
       }
     })
 
-    const checkedItems = items.filter(item => item.picked);
-    const notCheckedItems = items.filter(item => !item.picked);
+    const lists = [
+      "S-Market",
+      "Lidl",
+      "Prisma/Other",
+    ]
 
-    io.sockets.emit("get_data", [[...notCheckedItems],[...checkedItems]]);
+    io.sockets.emit("get_data", { items, lists });
   })
 
-    socket.on("addItem", async (itemToAdd) => {
-      await prisma.item.create({
-        data: {
-          person: itemToAdd.user,
-          name: itemToAdd.name
-        },
-      })
+  socket.on("addItem", async (itemToAdd) => {
+    await prisma.item.create({
+      data: {
+        person: itemToAdd.user,
+        name: itemToAdd.name,
+        sort: 0,
+        picked: false,
+        list: "S-Market",
+      },
+    })
       io.sockets.emit("change_data");
     })
 
@@ -65,22 +72,26 @@ io.on("connection", socket => {
       },
       data: {
         name: itemToEdit.name,
+        list: itemToEdit.list,
       },
     })
-    console.log(`updating: ${itemToEdit.id}, ${itemToEdit.name}`)
+    console.log(`updating: id ${itemToEdit.id}, ${itemToEdit.name},  list: ${itemToEdit.list},`)
     io.sockets.emit("change_data");
   })
 
   socket.on("sortItem", async (itemToSort) => {
+    // sorted items will always be in a real list
     await prisma.item.update({
       where: {
         id: itemToSort.id,
       },
       data: {
         sort: itemToSort.sort,
+        list: itemToSort.list,
+        picked: false,
       },
     })
-    console.log(`updating: ${itemToSort.id}, ${itemToSort.name}, ${itemToSort.sort}`)
+    console.log(`updating: id: ${itemToSort.id}, ${itemToSort.name}, sort: ${itemToSort.sort}`)
     io.sockets.emit("change_data");
   })
 

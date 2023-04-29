@@ -16,4 +16,5 @@ model Item {
   picked    Boolean @default(false)
   person    String?
   sort      Int @default(0)
+  list      String?
 }

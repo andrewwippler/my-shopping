@@ -1,5 +1,6 @@
 export type shoppingItems = {
-  sort: number;
+  list: string
+  sort: number
   id: number
   name: string
   picked: boolean
