@@ -13,9 +13,10 @@ export default function ShoppingList() {
   const { user } = useUser({
     redirectTo: '/login',
   })
-  const inputRef = useRef(null);
+
   const dispatch = useAppDispatch();
   const updateUI = useAppSelector(selectUpdateUI);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // connected flag
   const [connected, setConnected] = useState<boolean>(false);
@@ -123,10 +124,13 @@ export default function ShoppingList() {
 
   const handleAdd = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const name = event.currentTarget.productName.value.trim();
-    const list = event.currentTarget.list.value.trim();
-    // update product name
-    socket.emit('addItem', {user: user?.uid, name, list})
+    if (inputRef.current) {
+      const name = event.currentTarget.productName.value.trim();
+      const list = event.currentTarget.list.value.trim();
+      // update product name
+      socket.emit('addItem', { user: user?.uid, name, list })
+      inputRef.current.value = ''
+    }
   };
 
   return (
@@ -140,7 +144,7 @@ export default function ShoppingList() {
                   required
                   className="pl-1.5 py-1.5 col-span-2"
                   placeholder="New..."
-                  // Need to set new value to something
+                  ref={inputRef}
                   />
         <div className="col-span-2 inset-y-0 right-0 flex items-center">
           <select
