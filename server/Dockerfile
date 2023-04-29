@@ -34,6 +34,9 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 server
 
 COPY --from=builder --chown=server:nodejs /app/dist ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder --chown=server:nodejs /app/prisma ./
+RUN npx prisma generate
 
 USER server
 
