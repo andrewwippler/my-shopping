@@ -64,8 +64,8 @@ export default function ShoppingList() {
   const reorder = (iterable: Iterable<shoppingItems>, startIndex: number, endIndex: number, list: string) => {
 
     const result = Array.from(iterable);
-    const [removed] = result.splice(startIndex, 1);
-    result.splice(endIndex, 0, removed);
+    const [removed] = result.splice(startIndex, 1); // removes object at startIndex
+    result.splice(endIndex, 0, removed); // inserts item at endIndex
     let sort = removed.sort
 
     // find the previous sort item and add or subtract 1 from it
@@ -77,7 +77,7 @@ export default function ShoppingList() {
     sort = Array.from(iterable)[endIndex].sort + 1
     }
 
-    socket.emit('sortItem', {id: removed.id, sort, name: removed.name, list})
+    socket.emit('sortItem', {id: removed.id, sort, name: removed.name, list, array: result})
 
     return result;
   };

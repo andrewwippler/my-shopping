@@ -53,11 +53,17 @@ io.on("connection", socket => {
   })
 
   socket.on("addItem", async (itemToAdd) => {
+    const sort = await prisma.item.aggregate({
+      _count: {
+        id: true,
+      },
+    })
+
     await prisma.item.create({
       data: {
         person: itemToAdd.user,
         name: itemToAdd.name,
-        sort: 0,
+        sort: sort._count.id,
         picked: false,
         list: itemToAdd.list,
       },
@@ -81,7 +87,7 @@ io.on("connection", socket => {
 
   socket.on("sortItem", async (itemToSort) => {
     // sorted items will always be in a real list
-    await prisma.item.update({
+    prisma.item.update({
       where: {
         id: itemToSort.id,
       },
@@ -90,9 +96,32 @@ io.on("connection", socket => {
         list: itemToSort.list,
         picked: false,
       },
+    }).then(() => {
+
+      //check data
+      console.log(`updating: id: ${itemToSort.id}, ${itemToSort.name}, sort: ${itemToSort.sort}`)
+      prisma.item.findMany({orderBy: {sort: 'asc'}}).then(records => {
+        records.map(async (record, index) => {
+          // now we need to make the changes here.
+          // console.log("record id", record.id, record.sort == index, " ... array:", itemToSort.array[index].id)
+          if (record.id != itemToSort.array[index].id) {
+            console.log("fixing: ", record.name)
+            await prisma.item.update({
+              where: {
+                id: record.id,
+              },
+              data: {
+                sort: index,
+              },
+            })
+          }
+        })
+      }).then(() => {
+        io.sockets.emit("change_data");
+      })
     })
-    console.log(`updating: id: ${itemToSort.id}, ${itemToSort.name}, sort: ${itemToSort.sort}`)
-    io.sockets.emit("change_data");
+
+
   })
 
   socket.on("check", async (id) => {

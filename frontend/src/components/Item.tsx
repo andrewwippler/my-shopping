@@ -70,7 +70,7 @@ export default function Item({
         <>
         <button onClick={() => socket.emit('check', item.id)} className='px-4 py-2 mr-2 font-semibold text-sm bg-blue-300 hover:bg-blue-500 text-white shadow-sm inline-flex items-center'>
         <CheckIcon className="h-4 w-4" /></button>
-        <span className='grow'>{item.name}</span> {/* , {item.list}, {String(item.picked)} */}
+          <span className='grow'>{item.name} sort: {item.sort}</span> {/* , {item.list}, {String(item.picked)} */}
         <button onClick={() => setEditTag(true)} className='px-4  py-2 font-semibold text-sm bg-green-300 hover:bg-green-500 text-white rounded-full shadow-sm inline-flex items-center' >
         <PencilSquareIcon className="h-4 w-4" /></button>
 
