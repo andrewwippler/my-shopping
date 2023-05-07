@@ -84,22 +84,37 @@ export default function ShoppingList() {
 
   const onDragEnd = (result: any) => {
 
-    // console.log("result",result)
+    console.log("result",result)
     // dropped outside the list
     if (!result.destination) {
       return;
     }
 
+    // do not sort purchased
+    if (result.destination.droppableId == "Purchased" && result.source.droppableId == "Purchased") {
+      return;
+    }
+
+    // emit checked and return if dropping in purchased
     if (result.destination.droppableId == "Purchased") {
-      // emit checked and return
       const [removed] = Array.from(Items).splice(result.source.index, 1);
       socket.emit('check', removed.id);
       return;
     }
 
+    // fix alphabetical array
+    let startIndex
+    if (result.source.droppableId == "Purchased") {
+      const realItem = [...Items].sort((a, b) => a.name.localeCompare(b.name)).splice(result.source.index, 1)
+      console.log("real",realItem)
+      startIndex = Items.findIndex(p => p.id == realItem[0].id)
+    } else {
+      startIndex = result.source.index
+    }
+
     const items = reorder(
       Items,
-      result.source.index,
+      startIndex,
       result.destination.index,
       result.destination.droppableId
     );
@@ -189,9 +204,9 @@ export default function ShoppingList() {
           {(provided, snapshot) => (
             <div {...provided.droppableProps} ref={provided.innerRef} className={getListStyle(snapshot.isDraggingOver)}>
             <div className="text-xl font-bold py-4 text-blue-900">Purchased</div>
-              {Items && Items.map((item, index) => (
+              {Items && [...Items].sort((a, b) => a.name.localeCompare(b.name)).map((item,index) => (
                 item.picked &&
-                <Draggable key={`Purchased-${index}-${item.sort}`} draggableId={`Purchased-${index}`} index={index}>
+                <Draggable key={`Purchased-${item.id}-${item.sort}`} draggableId={`Purchased-${index}`} index={index}>
                   {(provided, snapshot) => (
                     // @ts-ignore
                     <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={getItemStyle(snapshot.isDragging, provided.draggableProps.style)}>
