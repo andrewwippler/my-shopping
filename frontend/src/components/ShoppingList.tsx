@@ -176,6 +176,7 @@ export default function ShoppingList() {
           <CheckCircleIcon className="h-4 w-4 mr-2" />Add </button>
 
       </form>
+      <button className="w-full my-8 rounded-md bg-yellow-100 p-2" onClick={() => socket.emit('undo')}>Undo Last</button>
       <DragDropContext onDragEnd={onDragEnd}>
         {lists && lists.map((list,listIndex) => (
           <Droppable key={listIndex} droppableId={`${list}`}>

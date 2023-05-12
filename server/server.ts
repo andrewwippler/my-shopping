@@ -124,6 +124,48 @@ io.on("connection", socket => {
 
   })
 
+
+  socket.on("undo", async () => {
+
+    const skip = await prisma.skip.findFirst({
+      where: {
+        id: 1
+      }
+    });
+
+    const item = await prisma.item.findMany({
+      skip: skip.count,
+      take: 1,
+      orderBy: {
+        updatedAt: "desc"
+      }
+    })
+    await prisma.item.update({
+      where: {
+        id: `${ item[0].id }`,
+      },
+      data: {
+        picked: !item[0].picked,
+      },
+    })
+
+    await prisma.skip.upsert({
+      where: {
+        id: 1,
+      },
+      create: {
+        last_skipped: item[0].name,
+        count: 1
+      },
+      update: {
+        last_skipped: item[0].name,
+        count: skip.count + 1
+      },
+    })
+    console.log(`undo: ${item[0].id}, ${item[0].name}`)
+    io.sockets.emit("change_data");
+  });
+
   socket.on("check", async (id) => {
     const item = await prisma.item.findUnique({
       where: {
@@ -136,6 +178,20 @@ io.on("connection", socket => {
       },
       data: {
         picked: !item.picked,
+      },
+    })
+
+    await prisma.skip.upsert({
+      where: {
+        id: 1,
+      },
+      create: {
+        last_skipped: '',
+        count: 0
+      },
+      update: {
+        last_skipped: '',
+        count: 0
       },
     })
     console.log(`checking: ${item.id}, ${item.name}`)
