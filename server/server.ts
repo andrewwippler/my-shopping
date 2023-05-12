@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Item, PrismaClient } from '@prisma/client';
 require('dotenv').config();
 import express from 'express';
 import { Server } from 'socket.io';
@@ -52,18 +52,26 @@ io.on("connection", socket => {
     io.sockets.emit("get_data", { items, lists });
   })
 
-  socket.on("addItem", async (itemToAdd) => {
+  socket.on("addItem", async (itemToAdd: Item) => {
     const sort = await prisma.item.aggregate({
       _count: {
         id: true,
       },
     })
 
-    await prisma.item.create({
-      data: {
-        person: itemToAdd.user,
+    await prisma.item.upsert({
+      where: {
+        name: `${itemToAdd.name}`,
+      },
+      create: {
+        person: itemToAdd.person,
         name: itemToAdd.name,
         sort: sort._count.id,
+        picked: false,
+        list: itemToAdd.list,
+      },
+      update: {
+        person: itemToAdd.person,
         picked: false,
         list: itemToAdd.list,
       },

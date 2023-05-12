@@ -12,7 +12,7 @@ datasource db {
 
 model Item {
   id        String     @default(cuid()) @id
-  name      String
+  name      String @unique
   picked    Boolean @default(false)
   person    String?
   sort      Int @default(0)

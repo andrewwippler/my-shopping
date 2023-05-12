@@ -143,7 +143,7 @@ export default function ShoppingList() {
       const name = event.currentTarget.productName.value.trim();
       const list = event.currentTarget.list.value.trim();
       // update product name
-      socket.emit('addItem', { user: user?.uid, name, list })
+      socket.emit('addItem', { person: user?.uid, name, list })
       inputRef.current.value = ''
     }
   };
