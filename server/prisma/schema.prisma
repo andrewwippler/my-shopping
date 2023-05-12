@@ -17,4 +17,12 @@ model Item {
   person    String?
   sort      Int @default(0)
   list      String?
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Skip {
+  id            Int       @id @default(autoincrement())
+  last_skipped  String?
+  count         Int       @default(0)
+
 }
