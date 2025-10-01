@@ -1,6 +1,13 @@
 import NextAuth from "next-auth";
 import type { NextAuthOptions } from "next-auth"
 
+// Extend the Session type to include accessToken
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+  }
+}
+
 
 
 export const authOptions: NextAuthOptions = {
@@ -39,7 +46,7 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      session.accessToken = token.accessToken;
+      session.accessToken = typeof token.accessToken === "string" ? token.accessToken : undefined;
       return session;
     },
     async redirect({ url, baseUrl }) {

@@ -26,7 +26,9 @@ export async function getServerSideProps(context: any) {
   }
 
   // Fix undefined image
-  session.user.image = session.user.image ?? null;
+  if (session.user) {
+    session.user.image = session.user.image ?? null;
+  }
 
   return {
     props: { session },
