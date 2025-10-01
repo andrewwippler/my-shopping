@@ -50,7 +50,7 @@ export default function ShoppingList() {
       items: shoppingItems[];
       lists: Array<string>;
     }) {
-      console.log("retrieved data",value)
+      // console.log("retrieved data",value)
       setAllItems(value.items);
       setLists(value.lists);
     }
@@ -248,46 +248,6 @@ export default function ShoppingList() {
             )}
           </Droppable>
         ))}
-
-        <Droppable droppableId="Uncategorized">
-          {(provided, snapshot) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className={getListStyle(snapshot.isDraggingOver)}
-            >
-              <div className="text-xl font-bold py-4 text-blue-900">
-                Uncategorized
-              </div>
-              {[...Items]
-                // filter out items with no list
-                .filter((item) => lists.includes(item.list) === false && !item.picked)
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((item, index) => (
-                  <Draggable
-                    key={`Uncategorized-${item.id}`}
-                    draggableId={`Uncategorized-${item.id}`}
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className={getItemStyle(
-                          snapshot.isDragging,
-                          provided.draggableProps.style
-                        )}
-                      >
-                        <Item item={item} lists={lists}/>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
 
         <Droppable droppableId="Purchased">
           {(provided, snapshot) => (
