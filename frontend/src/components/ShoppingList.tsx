@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  FormEvent,
-  CSSProperties,
-} from "react";
+import React, { useState, useEffect, useRef, FormEvent } from "react";
 import { useSession } from "next-auth/react";
 import { socket } from "@/lib/socket";
 import { shoppingItems } from "@/types/ShoppingItem";
@@ -24,73 +18,57 @@ export default function ShoppingList() {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // connected flag
   const [connected, setConnected] = useState<boolean>(false);
-
   const [Items, setAllItems] = useState<shoppingItems[]>([]);
   const [lists, setLists] = useState<string[]>([]);
 
   useEffect(() => {
     socket.connect();
 
-    function onConnect() {
+    const onConnect = () => {
       setConnected(true);
       socket.emit("load");
-    }
+    };
 
-    function onDisconnect() {
-      setConnected(false);
-    }
+    const onDisconnect = () => setConnected(false);
 
-    function changeData() {
-      socket.emit("load");
-    }
-
-    function receiveData(value: {
-      items: shoppingItems[];
-      lists: Array<string>;
-    }) {
-      // console.log("retrieved data",value)
+    const receiveData = (value: { items: shoppingItems[]; lists: string[] }) => {
       setAllItems(value.items);
       setLists(value.lists);
-    }
+    };
+
+    const changeDataHandler = () => socket.emit("load");
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("get_data", receiveData);
-    socket.on("change_data", changeData);
+    socket.on("change_data", changeDataHandler);
 
     return () => {
       socket.disconnect();
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("get_data", receiveData);
-      socket.off("change_data", changeData);
+      socket.off("change_data", changeDataHandler);
     };
   }, []);
 
-  // socket.Emit "load" to refresh data
-  function changeData() {
-    socket.emit("load");
-  }
+  // Force refresh
+  const changeData = () => socket.emit("load");
 
-  // Drag & Drop reorder
+  // Reorder function
   const reorder = (
-    iterable: Iterable<shoppingItems>,
+    items: shoppingItems[],
     startIndex: number,
     endIndex: number,
     list: string
   ) => {
-    const result = Array.from(iterable);
+    const result = Array.from(items);
     const [removed] = result.splice(startIndex, 1);
     result.splice(endIndex, 0, removed);
 
-    let sort = removed.sort;
-    if (startIndex > endIndex) {
-      sort = result[endIndex].sort - 1;
-    } else {
-      sort = result[endIndex].sort + 1;
-    }
+    const refItem = result[endIndex] ?? removed;
+    const sort = startIndex > endIndex ? refItem.sort - 1 : refItem.sort + 1;
 
     socket.emit("sortItem", {
       id: removed.id,
@@ -103,32 +81,40 @@ export default function ShoppingList() {
     return result;
   };
 
+  // Drag end handler
   const onDragEnd = (result: any) => {
     if (!result.destination) return;
 
-    if (
-      result.destination.droppableId === "Purchased" &&
-      result.source.droppableId === "Purchased"
-    ) {
-      return; // don't reorder purchased
-    }
-
+    // Moving to Purchased
     if (result.destination.droppableId === "Purchased") {
-      const [removed] = Array.from(Items).splice(result.source.index, 1);
-      socket.emit("check", removed.id);
+      const item = Items.find(
+        (i) =>
+          `item-${i.id}` === result.draggableId ||
+          `Purchased-${i.id}` === result.draggableId
+      );
+      if (item) {
+        socket.emit("check", item.id);
+        setAllItems((prev) =>
+          prev.map((i) => (i.id === item.id ? { ...i, picked: true } : i))
+        );
+      }
       return;
     }
 
-    let startIndex =
-      result.source.droppableId === "Purchased"
-        ? Items.findIndex(
-            (p) =>
-              p.id ===
-              [...Items]
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .splice(result.source.index, 1)[0].id
-          )
-        : result.source.index;
+    // Prevent reordering Purchased
+    if (
+      result.source.droppableId === "Purchased" &&
+      result.destination.droppableId === "Purchased"
+    ) {
+      return;
+    }
+
+    // Reordering inside a list
+    const startIndex = Items.findIndex(
+      (i) =>
+        `item-${i.id}` === result.draggableId ||
+        `Purchased-${i.id}` === result.draggableId
+    );
 
     const items = reorder(
       Items,
@@ -139,28 +125,37 @@ export default function ShoppingList() {
     setAllItems(items);
   };
 
+  // Styles
   const getItemStyle = (
     isDragging: boolean,
     draggableStyle?: DraggingStyle | NotDraggingStyle
-  ) => {
-    const drag = isDragging ? "bg-white ring-1 rounded-md" : "bg-white";
-    return `${drag} p-1`;
-  };
+  ) => ({
+    background: "white",
+    borderRadius: isDragging ? "0.375rem" : "0",
+    padding: "0.25rem",
+    marginBottom: "0.25rem",
+    ...draggableStyle,
+  });
 
-  const getListStyle = (isDraggingOver: boolean) => {
-    const background = isDraggingOver ? "bg-blue-50" : "bg-stone-100";
-    return `${background} p-4`;
-  };
+  const getListStyle = (isDraggingOver: boolean) => ({
+    background: isDraggingOver ? "#DBEAFE" : "#F3F4F6",
+    padding: "1rem",
+    borderRadius: "0.375rem",
+    marginBottom: "1rem",
+  });
 
+  // Add new item
   const handleAdd = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (inputRef.current && user) {
-      const name = event.currentTarget.productName.value.trim();
-      const list = event.currentTarget.list.value.trim();
+    if (!inputRef.current || !user) return;
 
-      socket.emit("addItem", { person: user.email, name, list });
-      inputRef.current.value = "";
-    }
+    const name = event.currentTarget.productName.value.trim();
+    const list = event.currentTarget.list.value.trim();
+
+    if (!name || !list) return;
+
+    socket.emit("addItem", { person: user.email, name, list });
+    inputRef.current.value = "";
   };
 
   return (
@@ -184,12 +179,15 @@ export default function ShoppingList() {
             name="list"
             className="h-full border-0 bg-transparent py-0 pl-2 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
           >
-            {/* set options based upon lists array */}
-          {lists.map((list, index) => (
-              <option key={index} value={list}>
-                {list}
-              </option>
-            ))}
+            {lists.length ? (
+              lists.map((list, index) => (
+                <option key={index} value={list}>
+                  {list}
+                </option>
+              ))
+            ) : (
+              <option disabled>No lists available</option>
+            )}
           </select>
         </div>
         <button
@@ -215,7 +213,7 @@ export default function ShoppingList() {
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className={getListStyle(snapshot.isDraggingOver)}
+                style={getListStyle(snapshot.isDraggingOver)}
               >
                 <div className="text-xl font-bold py-4 text-blue-900">
                   {list}
@@ -232,7 +230,7 @@ export default function ShoppingList() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={getItemStyle(
+                          style={getItemStyle(
                             snapshot.isDragging,
                             provided.draggableProps.style
                           )}
@@ -254,7 +252,7 @@ export default function ShoppingList() {
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className={getListStyle(snapshot.isDraggingOver)}
+              style={getListStyle(snapshot.isDraggingOver)}
             >
               <div className="text-xl font-bold py-4 text-blue-900">
                 Purchased
@@ -273,12 +271,12 @@ export default function ShoppingList() {
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        className={getItemStyle(
+                        style={getItemStyle(
                           snapshot.isDragging,
                           provided.draggableProps.style
                         )}
                       >
-                        <Item item={item} lists={lists}/>
+                        <Item item={item} lists={lists} />
                       </div>
                     )}
                   </Draggable>
