@@ -43,11 +43,14 @@ io.on("connection", socket => {
       }
     })
 
-    const lists = [
-      "S-Market",
-      "Lidl",
-      "Prisma/Other",
-    ]
+    // get lists from STORES env variable
+    // or default lists
+    let lists: Array<string> = []
+    if (process.env.STORES) {
+      lists = process.env.STORES.split(",").map(item => item.trim());
+    } else {
+      lists = ["S-Market", "Lidl", "Prisma/Other"]
+    }
 
     io.sockets.emit("get_data", { items, lists });
   })
@@ -220,4 +223,3 @@ io.on("connection", socket => {
     console.log("user disconnected");
   })
 })
-

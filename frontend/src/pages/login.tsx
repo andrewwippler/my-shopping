@@ -1,53 +1,18 @@
-import React, { useState } from 'react'
-import useUser from '@/lib/useUser'
-import Layout from '@/components/Layout'
-import Form from '@/components/Form'
-import fetchJson, { FetchError } from '@/lib/fetchJson'
-import { useAppDispatch, useAppSelector } from '@/hooks'
+import React, { useState } from "react";
+import Layout from "@/components/Layout";
+import { signIn } from "next-auth/react";
+
 export default function Login() {
-
-  const dispatch = useAppDispatch()
-
-  // retrieve first accessed path as unauthenticated user
-  const { mutateUser } = useUser({
-    redirectTo: "/",
-    redirectIfFound: true,
-  })
-
-  const [errorMsg, setErrorMsg] = useState('')
-
   return (
     <Layout>
-      <div className="login">
-        <Form
-          errorMessage={errorMsg}
-          onSubmit={async function handleSubmit(event) {
-            event.preventDefault()
-
-            const body = {
-              email: event.currentTarget.email.value,
-              password: event.currentTarget.password.value,
-            }
-
-            try {
-              mutateUser(
-                await fetchJson('/api/login', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(body),
-                })
-              )
-            } catch (error) {
-              if (error instanceof FetchError) {
-                setErrorMsg(error.data.message)
-              } else {
-                console.error('An unexpected error happened:', error)
-              }
-            }
-          }}
-        />
-      </div>
-
+<div className="flex items-center justify-center">
+  <button
+    className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition-colors"
+    onClick={() => signIn("dex")}
+  >
+    Sign in to Wippler Auth
+  </button>
+</div>
     </Layout>
-  )
+  );
 }

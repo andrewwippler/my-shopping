@@ -1,7 +1,6 @@
 import Head from 'next/head'
 import Header from '@/components/Header'
 import { format } from 'date-fns'
-import Link from 'next/link'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
 
