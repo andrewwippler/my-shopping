@@ -20,7 +20,7 @@ async function main() {
       id: `${i}`,
       name: faker.commerce.product(),
       picked: !(i % 3 === 0),
-      person: faker.datatype.uuid(),
+      person: faker.string.uuid(),
       sort: i,
     };
 
