@@ -6,11 +6,12 @@ services:
       - 6379:6379
 
   db:
-    image: mysql:8
+    image: postgres:17-alpine
     volumes:
       - ./tmp/db:/var/lib/mysql
     environment:
-      MYSQL_ROOT_PASSWORD: prisma
-      MYSQL_DATABASE: shopping
+      POSTGRES_PASSWORD: prisma
+      POSTGRES_DB: shopping
+      POSTGRES_USER: johndoe
     ports:
-      - 3306:3306
+      - 5432:5432

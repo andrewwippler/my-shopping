@@ -1,9 +1,10 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import { type Config } from 'tailwindcss';
+
+const config: Config = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx}',
-    './src/components/**/*.{js,ts,jsx,tsx}',
-    './src/app/**/*.{js,ts,jsx,tsx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',       // app directory
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',     // pages directory
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}' // components
   ],
   theme: {
     extend: {
@@ -17,4 +18,6 @@ module.exports = {
   plugins: [
     require('@tailwindcss/forms'),
   ],
-}
+};
+
+export default config;
