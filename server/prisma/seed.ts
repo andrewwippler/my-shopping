@@ -7,7 +7,9 @@ type Item = {
   picked: boolean
   person: string
   sort: number
+  list: string
 }
+
 async function main() {
   await prisma.item.deleteMany({}); // use with caution.
 
@@ -22,6 +24,7 @@ async function main() {
       picked: !(i % 3 === 0),
       person: faker.string.uuid(),
       sort: i,
+      list: faker.helpers.arrayElement(["S-Market", "Lidl", "Prisma/Other"]),
     };
 
     items.push(item);
