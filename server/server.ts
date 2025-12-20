@@ -6,7 +6,12 @@ import { Server } from 'socket.io';
 const port = process.env.PORT || 3001;
 const origin = process.env.ORIGIN || "http://localhost:3000";
 const app = express()
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  adapter: {
+    provider: "postgresql",
+    url: process.env.DATABASE_URL,
+  },
+})
 app.use(express.json())
 
 
