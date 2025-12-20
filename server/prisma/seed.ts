@@ -1,14 +1,11 @@
-import { PrismaClient } from '@prisma/client'
 import { faker } from "@faker-js/faker";
-const prisma = new PrismaClient()
-type Item = {
-  id: string
-  name: string
-  picked: boolean
-  person: string
-  sort: number
-  list: string
-}
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Item, PrismaClient } from '../generated/prisma/client'
+
+const connectionString = `${process.env.DATABASE_URL}`
+
+const adapter = new PrismaPg({ connectionString })
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   await prisma.item.deleteMany({}); // use with caution.
@@ -25,6 +22,8 @@ async function main() {
       person: faker.string.uuid(),
       sort: i,
       list: faker.helpers.arrayElement(["S-Market", "Lidl", "Prisma/Other"]),
+      createdAt: undefined,
+      updatedAt: undefined
     };
 
     items.push(item);
