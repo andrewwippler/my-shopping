@@ -10,6 +10,7 @@ Need 2 terminals open to run:
 3. `cd frontend && npm run dev`
 
 To generate the prisma client: `cd server && npx prisma generate`
+To push schema changes to prod: `npx prisma db push`
 
 ## License
 
