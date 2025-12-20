@@ -11,18 +11,20 @@ datasource db {
 }
 
 model Item {
-  id        String     @default(cuid()) @id
-  name      String @unique
-  picked    Boolean @default(false)
+  id        String   @id @default(cuid())
+  name      String   @unique
   person    String?
-  sort      Int @default(0)
-  list      String?
-  updatedAt DateTime @default(now()) @updatedAt
+  sort      Int
+  picked    Boolean  @default(false)
+  list      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([list, sort])
 }
 
 model Skip {
-  id            Int       @id @default(autoincrement())
-  last_skipped  String?
-  count         Int       @default(0)
-
+  id           Int     @id
+  last_skipped String?
+  count        Int     @default(0)
 }

@@ -56,29 +56,27 @@ export default function ShoppingList() {
   // Force refresh
   const changeData = () => socket.emit("load");
 
-  // Reorder function
-  const reorder = (
-    items: shoppingItems[],
+  // Reorder function for a single list
+  const reorderList = (
+    listItems: shoppingItems[],
     startIndex: number,
-    endIndex: number,
-    list: string
+    endIndex: number
   ) => {
-    const result = Array.from(items);
+    const result = Array.from(listItems);
     const [removed] = result.splice(startIndex, 1);
     result.splice(endIndex, 0, removed);
-
-    const refItem = result[endIndex] ?? removed;
-    const sort = startIndex > endIndex ? refItem.sort - 1 : refItem.sort + 1;
-
-    socket.emit("sortItem", {
-      id: removed.id,
-      sort,
-      name: removed.name,
-      list,
-      array: result,
-    });
-
     return result;
+  };
+
+  // Build a global ordered array from per-list arrays (preserves picked items separately)
+  const buildGlobalFromLists = (listsOrder: string[], perListMap: Record<string, shoppingItems[]>) => {
+    const unpickedOrdered: shoppingItems[] = [];
+    listsOrder.forEach(l => {
+      const arr = perListMap[l] ?? [];
+      unpickedOrdered.push(...arr);
+    });
+    const picked = Items.filter(i => i.picked);
+    return [...unpickedOrdered, ...picked];
   };
 
   // Drag end handler
@@ -109,20 +107,48 @@ export default function ShoppingList() {
       return;
     }
 
-    // Reordering inside a list
-    const startIndex = Items.findIndex(
-      (i) =>
-        `item-${i.id}` === result.draggableId ||
-        `Purchased-${i.id}` === result.draggableId
-    );
+    const sourceList = result.source.droppableId;
+    const destList = result.destination.droppableId;
+    const sourceIndex = result.source.index;
+    const destIndex = result.destination.index;
 
-    const items = reorder(
-      Items,
-      startIndex,
-      result.destination.index,
-      result.destination.droppableId
-    );
-    setAllItems(items);
+    // Per-list arrays of unpicked items (reflect current UI order)
+    const perListMap: Record<string, shoppingItems[]> = {};
+    lists.forEach((l) => {
+      perListMap[l] = Items.filter((it) => it.list === l && !it.picked);
+    });
+
+    // Find moved item from source list
+    const sourceItems = perListMap[sourceList] ?? [];
+    const movedItem = sourceItems[sourceIndex];
+    if (!movedItem) return;
+
+    if (sourceList === destList) {
+      // simple reorder inside same list
+      const newList = reorderList(sourceItems, sourceIndex, destIndex);
+      perListMap[sourceList] = newList;
+      const newGlobal = buildGlobalFromLists(lists, perListMap);
+      setAllItems(newGlobal);
+      socket.emit("sortItem", { movedId: movedItem.id, list: destList, array: newGlobal });
+      return;
+    }
+
+    // move between lists
+    const destItems = perListMap[destList] ?? [];
+    const newSource = Array.from(sourceItems);
+    newSource.splice(sourceIndex, 1);
+    const movedUpdated = { ...movedItem, list: destList };
+    const newDest = Array.from(destItems);
+    newDest.splice(destIndex, 0, movedUpdated);
+
+    perListMap[sourceList] = newSource;
+    perListMap[destList] = newDest;
+
+    const newGlobal = buildGlobalFromLists(lists, perListMap);
+    setAllItems(newGlobal);
+
+    // send full ordered array and movedId so server updates only that item's list
+    socket.emit("sortItem", { movedId: movedItem.id, list: destList, array: newGlobal });
   };
 
   // Styles
