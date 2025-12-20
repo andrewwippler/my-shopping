@@ -1,4 +1,3 @@
-import { Item, PrismaClient } from '@prisma/client';
 require('dotenv').config();
 import express from 'express';
 import { Server } from 'socket.io';
@@ -6,12 +5,14 @@ import { Server } from 'socket.io';
 const port = process.env.PORT || 3001;
 const origin = process.env.ORIGIN || "http://localhost:3000";
 const app = express()
-const prisma = new PrismaClient({
-  adapter: {
-    provider: "postgresql",
-    url: process.env.DATABASE_URL,
-  },
-})
+
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Item, PrismaClient } from './generated/prisma/client'
+
+const connectionString = `${process.env.DATABASE_URL}`
+
+const adapter = new PrismaPg({ connectionString })
+const prisma = new PrismaClient({ adapter })
 app.use(express.json())
 
 
