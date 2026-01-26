@@ -7,7 +7,7 @@ const origin = process.env.ORIGIN || "http://localhost:3000";
 const app = express()
 
 import { PrismaPg } from '@prisma/adapter-pg'
-import { Item, PrismaClient } from './generated/prisma/client'
+import { Item, PrismaClient } from './generated/client';
 
 const connectionString = `${process.env.DATABASE_URL}`
 

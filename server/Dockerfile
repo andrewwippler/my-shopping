@@ -26,7 +26,7 @@ RUN yarn run tsc
 
 
 # Production image, copy all the files and run next
-FROM base AS runner
+FROM deps AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
@@ -35,7 +35,8 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 server
 
 COPY --from=builder --chown=server:nodejs /app/dist ./
-COPY --from=deps /app/node_modules ./node_modules
+# 2. CHANGE THIS: Copy node_modules from BUILDER, not DEPS
+COPY --from=builder --chown=server:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=server:nodejs /app/prisma ./
 
 USER server
