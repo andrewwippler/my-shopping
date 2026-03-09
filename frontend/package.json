@@ -39,7 +39,7 @@
     "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.24",
     "postcss": "^8.5.8",
-    "prisma": "^7.3.0",
+    "prisma": "^7.4.2",
     "tailwindcss": "^4.2.0"
   },
   "overrides": {
