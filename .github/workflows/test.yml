@@ -1,0 +1,55 @@
+name: Backend Tests
+
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: Run Backend Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: prisma
+          POSTGRES_USER: johndoe
+          POSTGRES_DB: shopping
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+        volumes:
+          - ./server/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: |
+          cd server
+          npm install
+
+      - name: Generate Prisma client
+        run: |
+          cd server
+          npx prisma generate
+
+      - name: Run Prisma migrations on test database
+        run: |
+          cd server
+          DATABASE_URL="postgresql://johndoe:prisma@localhost:5432/shopping_test?schema=public" npx prisma migrate deploy
+
+      - name: Run tests
+        run: |
+          cd server
+          npm run test
