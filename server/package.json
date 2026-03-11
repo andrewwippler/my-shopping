@@ -12,7 +12,7 @@
   "scripts": {
     "start": "tsc && node dist/server.js",
     "dev": "nodemon server.ts",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },
