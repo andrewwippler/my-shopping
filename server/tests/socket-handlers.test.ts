@@ -10,30 +10,31 @@ describe('Database Operations for Socket Handlers', () => {
     it('should create an item', async () => {
       const item = await testPrisma.item.create({
         data: {
-          name: 'New Item',
+          name: `New Item ${Date.now()}`,
           person: 'Test Person',
           list: 'Test List',
           sort: 0,
         },
       });
 
-      expect(item.name).toBe('New Item');
+      expect(item.name).toContain('New Item');
       expect(item.picked).toBe(false);
     });
 
     it('should upsert an item (addItem handler logic)', async () => {
+      const uniqueName = `Existing Item ${Date.now()}`;
       await testPrisma.item.create({
-        data: { name: 'Existing Item', sort: 0, list: 'Old List', picked: true },
+        data: { name: uniqueName, sort: 0, list: 'Old List', picked: true },
       });
 
       await testPrisma.item.upsert({
-        where: { name: 'Existing Item' },
-        create: { name: 'Existing Item', person: 'New Person', list: 'New List', sort: 1 },
+        where: { name: uniqueName },
+        create: { name: uniqueName, person: 'New Person', list: 'New List', sort: 1 },
         update: { person: 'New Person', list: 'New List', picked: false },
       });
 
       const items = await testPrisma.item.findMany({
-        where: { name: 'Existing Item' },
+        where: { name: uniqueName },
       });
 
       expect(items).toHaveLength(1);
@@ -43,7 +44,7 @@ describe('Database Operations for Socket Handlers', () => {
 
     it('should update an item (editItem handler logic)', async () => {
       const item = await testPrisma.item.create({
-        data: { name: 'Edit Test Item', sort: 0, list: 'Original List' },
+        data: { name: `Edit Test Item ${Date.now()}`, sort: 0, list: 'Original List' },
       });
 
       const updated = await testPrisma.item.update({
@@ -56,9 +57,13 @@ describe('Database Operations for Socket Handlers', () => {
     });
 
     it('should toggle picked status (check handler logic)', async () => {
+      const timestamp = Date.now();
       const item = await testPrisma.item.create({
-        data: { name: 'Check Test Item', sort: 0, list: 'Test List', picked: false },
+        data: { name: `Check Test Item ${timestamp}`, sort: 0, list: 'Test List', picked: false },
       });
+
+      const found = await testPrisma.item.findUnique({ where: { id: item.id } });
+      expect(found).not.toBeNull();
 
       await testPrisma.item.update({
         where: { id: item.id },
@@ -90,7 +95,7 @@ describe('Database Operations for Socket Handlers', () => {
 
     it('should delete an item', async () => {
       const item = await testPrisma.item.create({
-        data: { name: 'Delete Test Item', sort: 0, list: 'Test List' },
+        data: { name: `Delete Test Item ${Date.now()}`, sort: 0, list: 'Test List' },
       });
 
       await testPrisma.item.delete({
@@ -112,14 +117,15 @@ describe('Database Operations for Socket Handlers', () => {
     });
 
     it('should reorder items with transactions', async () => {
+      const timestamp = Date.now();
       const item1 = await testPrisma.item.create({
-        data: { name: 'Sort Item 1', sort: 0, list: 'List A' },
+        data: { name: `Sort Item 1 ${timestamp}`, sort: 0, list: 'List A' },
       });
       const item2 = await testPrisma.item.create({
-        data: { name: 'Sort Item 2', sort: 1, list: 'List A' },
+        data: { name: `Sort Item 2 ${timestamp}`, sort: 1, list: 'List A' },
       });
       const item3 = await testPrisma.item.create({
-        data: { name: 'Sort Item 3', sort: 2, list: 'List A' },
+        data: { name: `Sort Item 3 ${timestamp}`, sort: 2, list: 'List A' },
       });
 
       const items = await testPrisma.item.findMany({
@@ -155,12 +161,13 @@ describe('Database Operations for Socket Handlers', () => {
     });
 
     it('should toggle last updated item', async () => {
+      const timestamp = Date.now();
       const item1 = await testPrisma.item.create({
-        data: { name: 'Undo Item 1', sort: 0, list: 'Test List', picked: false },
+        data: { name: `Undo Item 1 ${timestamp}`, sort: 0, list: 'Test List', picked: false },
       });
 
       await testPrisma.item.create({
-        data: { name: 'Undo Item 2', sort: 1, list: 'Test List', picked: true },
+        data: { name: `Undo Item 2 ${timestamp}`, sort: 1, list: 'Test List', picked: true },
       });
 
       await testPrisma.item.update({
@@ -183,11 +190,12 @@ describe('Database Operations for Socket Handlers', () => {
     });
 
     it('should load items ordered by sort', async () => {
+      const timestamp = Date.now();
       await testPrisma.item.createMany({
         data: [
-          { name: 'Item 3', sort: 2, list: 'Test' },
-          { name: 'Item 1', sort: 0, list: 'Test' },
-          { name: 'Item 2', sort: 1, list: 'Test' },
+          { name: `Item 3 ${timestamp}`, sort: 2, list: 'Test' },
+          { name: `Item 1 ${timestamp}`, sort: 0, list: 'Test' },
+          { name: `Item 2 ${timestamp}`, sort: 1, list: 'Test' },
         ],
       });
 
@@ -195,9 +203,9 @@ describe('Database Operations for Socket Handlers', () => {
         orderBy: { sort: 'asc' },
       });
 
-      expect(items[0].name).toBe('Item 1');
-      expect(items[1].name).toBe('Item 2');
-      expect(items[2].name).toBe('Item 3');
+      expect(items[0].name).toContain('Item 1');
+      expect(items[1].name).toContain('Item 2');
+      expect(items[2].name).toContain('Item 3');
     });
   });
 });

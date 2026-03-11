@@ -10,7 +10,7 @@ describe('Prisma Item Model', () => {
     it('should create an item', async () => {
       const item = await testPrisma.item.create({
         data: {
-          name: 'Test Item',
+          name: `Test Item ${Date.now()}`,
           person: 'Test Person',
           sort: 0,
           picked: false,
@@ -18,7 +18,7 @@ describe('Prisma Item Model', () => {
         },
       });
 
-      expect(item.name).toBe('Test Item');
+      expect(item.name).toContain('Test Item');
       expect(item.person).toBe('Test Person');
       expect(item.picked).toBe(false);
       expect(item.list).toBe('Test List');
@@ -28,7 +28,7 @@ describe('Prisma Item Model', () => {
     it('should read an item by id', async () => {
       const created = await testPrisma.item.create({
         data: {
-          name: 'Read Test Item',
+          name: `Read Test Item ${Date.now()}`,
           sort: 1,
           list: 'Test List',
         },
@@ -39,17 +39,20 @@ describe('Prisma Item Model', () => {
       });
 
       expect(item).not.toBeNull();
-      expect(item?.name).toBe('Read Test Item');
+      expect(item?.name).toContain('Read Test Item');
     });
 
     it('should update an item', async () => {
       const created = await testPrisma.item.create({
         data: {
-          name: 'Update Test Item',
+          name: `Update Test Item ${Date.now()}`,
           sort: 2,
           list: 'Test List',
         },
       });
+
+      const found = await testPrisma.item.findUnique({ where: { id: created.id } });
+      expect(found).not.toBeNull();
 
       const updated = await testPrisma.item.update({
         where: { id: created.id },
@@ -63,7 +66,7 @@ describe('Prisma Item Model', () => {
     it('should delete an item', async () => {
       const created = await testPrisma.item.create({
         data: {
-          name: 'Delete Test Item',
+          name: `Delete Test Item ${Date.now()}`,
           sort: 3,
           list: 'Test List',
         },
@@ -81,9 +84,10 @@ describe('Prisma Item Model', () => {
     });
 
     it('should enforce unique name constraint', async () => {
+      const uniqueName = `Unique Test Item ${Date.now()}`;
       await testPrisma.item.create({
         data: {
-          name: 'Unique Test Item',
+          name: uniqueName,
           sort: 4,
           list: 'Test List',
         },
@@ -92,7 +96,7 @@ describe('Prisma Item Model', () => {
       await expect(
         testPrisma.item.create({
           data: {
-            name: 'Unique Test Item',
+            name: uniqueName,
             sort: 5,
             list: 'Test List',
           },
@@ -110,9 +114,9 @@ describe('Prisma Item Model', () => {
     it('should count items for sort calculation', async () => {
       await testPrisma.item.createMany({
         data: [
-          { name: 'Item 1', sort: 0, list: 'List 1' },
-          { name: 'Item 2', sort: 1, list: 'List 1' },
-          { name: 'Item 3', sort: 2, list: 'List 1' },
+          { name: `Aggregation Item 1 ${Date.now()}`, sort: 0, list: 'List 1' },
+          { name: `Aggregation Item 2 ${Date.now()}`, sort: 1, list: 'List 1' },
+          { name: `Aggregation Item 3 ${Date.now()}`, sort: 2, list: 'List 1' },
         ],
       });
 
@@ -131,11 +135,12 @@ describe('Prisma Item Model', () => {
     });
 
     it('should handle multiple updates in a transaction', async () => {
+      const timestamp = Date.now();
       await testPrisma.item.createMany({
         data: [
-          { name: 'Trans Item 1', sort: 0, list: 'List A' },
-          { name: 'Trans Item 2', sort: 1, list: 'List A' },
-          { name: 'Trans Item 3', sort: 2, list: 'List A' },
+          { name: `Trans Item 1 ${timestamp}`, sort: 0, list: 'List A' },
+          { name: `Trans Item 2 ${timestamp}`, sort: 1, list: 'List A' },
+          { name: `Trans Item 3 ${timestamp}`, sort: 2, list: 'List A' },
         ],
       });
 
@@ -171,11 +176,12 @@ describe('Prisma Item Model', () => {
     });
 
     it('should efficiently query items by list and sort', async () => {
+      const timestamp = Date.now();
       await testPrisma.item.createMany({
         data: [
-          { name: 'Index Item 1', sort: 0, list: 'List X' },
-          { name: 'Index Item 2', sort: 1, list: 'List X' },
-          { name: 'Index Item 3', sort: 0, list: 'List Y' },
+          { name: `Index Item 1 ${timestamp}`, sort: 0, list: 'List X' },
+          { name: `Index Item 2 ${timestamp}`, sort: 1, list: 'List X' },
+          { name: `Index Item 3 ${timestamp}`, sort: 0, list: 'List Y' },
         ],
       });
 
