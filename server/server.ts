@@ -61,13 +61,12 @@ io.on("connection", socket => {
   })
 
   socket.on("addItem", async (itemToAdd: Item) => {
-     const sort = await prisma.item.aggregate({
-       _count: {
-         id: true,
-       },
-     })
+    const maxSort = await prisma.item.aggregate({
+      where: { list: itemToAdd.list },
+      _max: { sort: true },
+    });
 
-    const nextSort = sort._count?.id ?? 0;
+    const nextSort = (maxSort._max.sort ?? -1) + 1;
     // NOTE: upsert requires `name` to be a UNIQUE field in your Prisma schema.
     await prisma.item.upsert({
        where: {

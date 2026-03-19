@@ -110,6 +110,104 @@ describe('Database Operations for Socket Handlers', () => {
     });
   });
 
+  describe('AddItem operations', () => {
+    beforeEach(async () => {
+      await testPrisma.item.deleteMany();
+      await testPrisma.skip.deleteMany();
+    });
+
+    it('should calculate sort per-list, not globally', async () => {
+      const timestamp = Date.now();
+
+      // Create items in List A (5 items)
+      await testPrisma.item.createMany({
+        data: [
+          { name: `ListA Item 1 ${timestamp}`, sort: 0, list: 'List A' },
+          { name: `ListA Item 2 ${timestamp}`, sort: 1, list: 'List A' },
+          { name: `ListA Item 3 ${timestamp}`, sort: 2, list: 'List A' },
+          { name: `ListA Item 4 ${timestamp}`, sort: 3, list: 'List A' },
+          { name: `ListA Item 5 ${timestamp}`, sort: 4, list: 'List A' },
+        ],
+      });
+
+      // Create items in List B (3 items)
+      await testPrisma.item.createMany({
+        data: [
+          { name: `ListB Item 1 ${timestamp}`, sort: 0, list: 'List B' },
+          { name: `ListB Item 2 ${timestamp}`, sort: 1, list: 'List B' },
+          { name: `ListB Item 3 ${timestamp}`, sort: 2, list: 'List B' },
+        ],
+      });
+
+      // Simulate addItem logic: calculate next sort per-list
+      const maxSortListA = await testPrisma.item.aggregate({
+        where: { list: 'List A' },
+        _max: { sort: true },
+      });
+      const nextSortListA = (maxSortListA._max.sort ?? -1) + 1;
+
+      const maxSortListB = await testPrisma.item.aggregate({
+        where: { list: 'List B' },
+        _max: { sort: true },
+      });
+      const nextSortListB = (maxSortListB._max.sort ?? -1) + 1;
+
+      // List A should get sort 5 (max was 4)
+      expect(nextSortListA).toBe(5);
+
+      // List B should get sort 3 (max was 2), NOT 8
+      expect(nextSortListB).toBe(3);
+    });
+
+    it('should append new items to the end of their list', async () => {
+      const timestamp = Date.now();
+
+      // Create 3 items in List X
+      await testPrisma.item.createMany({
+        data: [
+          { name: `X Item 1 ${timestamp}`, sort: 0, list: 'List X' },
+          { name: `X Item 2 ${timestamp}`, sort: 1, list: 'List X' },
+          { name: `X Item 3 ${timestamp}`, sort: 2, list: 'List X' },
+        ],
+      });
+
+      // Create 2 items in List Y
+      await testPrisma.item.createMany({
+        data: [
+          { name: `Y Item 1 ${timestamp}`, sort: 0, list: 'List Y' },
+          { name: `Y Item 2 ${timestamp}`, sort: 1, list: 'List Y' },
+        ],
+      });
+
+      // Add new item to List X
+      const maxSort = await testPrisma.item.aggregate({
+        where: { list: 'List X' },
+        _max: { sort: true },
+      });
+      const newItem = await testPrisma.item.create({
+        data: {
+          name: `X Item 4 ${timestamp}`,
+          list: 'List X',
+          sort: (maxSort._max.sort ?? -1) + 1,
+        },
+      });
+
+      expect(newItem.sort).toBe(3);
+
+      // Verify all List X items are ordered correctly
+      const listXItems = await testPrisma.item.findMany({
+        where: { list: 'List X' },
+        orderBy: { sort: 'asc' },
+      });
+
+      expect(listXItems).toHaveLength(4);
+      expect(listXItems[0].sort).toBe(0);
+      expect(listXItems[1].sort).toBe(1);
+      expect(listXItems[2].sort).toBe(2);
+      expect(listXItems[3].sort).toBe(3);
+    });
+  });
+
   describe('Sort operations', () => {
     beforeEach(async () => {
       await testPrisma.item.deleteMany();
