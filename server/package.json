@@ -25,16 +25,19 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.0.3",
+    "@types/node": "^25.9.9",
     "@types/pg": "^8.16.0",
     "jest": "^30.3.0",
     "nodemon": "^3.1.10",
-    "prisma": "^7.3.0",
+    "prisma": "^7.10.1",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "overrides": {
+    "glob": "^14.0.6",
+    "minimatch": "^11.0.9",
+    "effect": "^3.22.5",
     "@hono/node-server": "1.19.11",
     "@mrleebo/prisma-ast": "0.15.0",
     "hono": "4.12.8",
