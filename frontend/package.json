@@ -22,8 +22,8 @@
     "date-fns": "^4.1.0",
     "nats": "^2.29.3",
     "nats.ws": "^1.30.3",
-    "next": "16.1.7",
-    "next-auth": "^4.24.13",
+    "next": "16.4.6",
+    "next-auth": "^4.24.15",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-redux": "^9.2.0",
@@ -33,28 +33,28 @@
     "typescript": "5.9.3"
   },
   "devDependencies": {
-    "@faker-js/faker": "^10.3.0",
+    "@faker-js/faker": "^10.6.0",
     "@tailwindcss/postcss": "^4.1.18",
     "autoprefixer": "^10.4.24",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.0",
-    "postcss": "^8.5.8",
+    "postcss": "^8.5.33",
     "prisma": "^7.5.0",
     "tailwindcss": "^4.2.0"
   },
   "overrides": {
-    "@types/react": "19.1.16",
+    "effect": "^3.22.5",
     "@types/react-dom": "19.1.9",
-    "@hono/node-server": "1.19.11",
+    "@hono/node-server": "^1.19.19",
     "@mrleebo/prisma-ast": "0.15.0",
-    "hono": "4.12.8",
+    "hono": "^4.12.8",
     "prisma": {
-      "hono": "4.12.8",
-      "@hono/node-server": "1.19.11",
+      "hono": "^4.12.8",
+      "@hono/node-server": "^1.19.11",
       "@mrleebo/prisma-ast": "0.15.0"
     },
     "@prisma/dev": {
-      "hono": "4.12.8"
+      "hono": "^4.12.8"
     }
   }
 }
