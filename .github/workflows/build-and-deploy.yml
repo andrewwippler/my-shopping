@@ -49,15 +49,40 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.REPOSITORY }}-s:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.REPOSITORY }}-s:latest
 
-      - name: Update Kubernetes Deployments
-        uses: appleboy/ssh-action@v0.1.9
-        with:
-          host: ${{ secrets.HOST }}
-          username: kubedeploy
-          key: ${{ secrets.SSH_KEY }}
-          port: 22
-          script: |
-            kubectl --namespace web set image deployment/shopping shopping=${{ env.REGISTRY }}/${{ env.REPOSITORY }}-fe:${{ github.sha }}
-            kubectl --namespace web set image deployment/shopping-server shopping-server=${{ env.REGISTRY }}/${{ env.REPOSITORY }}-s:${{ github.sha }}
-            kubectl --namespace web rollout status deployment/shopping
-            kubectl --namespace web rollout status deployment/shopping-server
+      - name: Updating FE
+        if: success()
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Deploy-Key: $WEBHOOK_SECRET" \
+            -d "{
+              \"version\": \"${{ github.sha }}\",
+              \"ns\": \"web\",
+              \"deploy\": \"shopping\",
+              \"container\": \"shopping\",
+              \"image\": \"${{ env.REPOSITORY }}-fe\",
+              \"prefix\": \"${{ env.REGISTRY }}\"
+            }"
+
+      - name: Updating Server
+        if: success()
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Deploy-Key: $WEBHOOK_SECRET" \
+            -d "{
+              \"version\": \"${{ github.sha }}\",
+              \"ns\": \"web\",
+              \"deploy\": \"shopping-server\",
+              \"container\": \"shopping-server\",
+              \"image\": \"${{ env.REPOSITORY }}-s\",
+              \"prefix\": \"${{ env.REGISTRY }}\"
+            }"
